@@ -12,6 +12,19 @@ Not here. `data/apps.json` is built and validated by
 GitHub Releases, and this repo copies it on a schedule (`sync.yml`). One source of
 truth, two faces.
 
+
+## Design
+
+The look follows the **Nijatva signature system** (`nijatva/nijatva-core`, `nijatva/nijatva-design`), not a comic or zine style:
+
+- **Four surfaces** - System, Dark `#0B0B0C`, Light `#F6F5F2`, Black `#000` for OLED. Picked in Appearance and remembered.
+- **Three accents** - Green `#1E7A46` (default), Saffron `#D98431`, Indigo `#3F45A8`.
+- **One tile geometry** - a rounded square, 96 units with a 24 unit radius, so every icon tile has the same corner ratio.
+- **One stroke weight** - hairline borders at 1.5px, no thick outlines, no hard offset shadows.
+- Calm type, no uppercase shouting, no skewed chips.
+
+The Appearance sheet mirrors the signature Appearance screen: surface list plus accent swatches.
+
 ## What it shows
 
 - **118 apps**, **Android, Windows, macOS and Linux**
