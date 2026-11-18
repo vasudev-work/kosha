@@ -1,0 +1,54 @@
+name: Sync catalog
+
+# KOSHA is a second face on the same data. The catalog is built and validated in
+# swadeshi-gh-store; this workflow only copies it here when it changed.
+
+on:
+  schedule:
+    - cron: '41 4 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull the catalog from swadeshi-gh-store
+        run: |
+          curl -fsSL -o /tmp/apps.json \
+            https://raw.githubusercontent.com/vasudev-work/swadeshi-gh-store/main/data/apps.json
+          python3 - <<'PY'
+          import json, sys
+          doc = json.load(open('/tmp/apps.json'))
+          assert doc.get('source') == 'GitHub Releases', 'unexpected source'
+          assert doc['count'] == len(doc['apps']), 'count mismatch'
+          for a in doc['apps']:
+              assert a.get('platforms'), 'app without platforms: ' + a.get('repo', '?')
+              assert a.get('downloads'), 'app without downloads: ' + a.get('repo', '?')
+          print('catalog OK:', doc['count'], 'apps')
+          json.dump(doc, open('data/apps.json', 'w'), ensure_ascii=False, indent=1)
+          PY
+
+      - name: Commit if it changed
+        run: |
+          if git diff --quiet -- data/apps.json; then
+            echo "No change."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/apps.json
+          git commit -m "chore: sync catalog from swadeshi-gh-store"
+          git push
