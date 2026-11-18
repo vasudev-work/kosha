@@ -377,7 +377,7 @@ function openApp(repo){
       (a.license ? '<span>' + esc(a.license) + '</span>' : '') +
       (a.updated ? '<span>updated ' + esc(rel(a.updated)) + '</span>' : '') +
     '</div>';
-  document.getElementById('appSheet').hidden = false;
+  openModal('appSheet');
   const cp = document.getElementById('copyRepo');
   if (cp) cp.addEventListener('click', () => {
     const txt = cp.dataset.repo;
@@ -387,7 +387,16 @@ function openApp(repo){
   });
 }
 
-function closeModal(id){ document.getElementById(id).hidden = true; }
+const SHEETS = ['osSheet', 'lookSheet', 'appSheet'];
+function openModal(id){
+  SHEETS.forEach(x => { document.getElementById(x).hidden = (x !== id); });
+  document.getElementById(id).hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id){
+  document.getElementById(id).hidden = true;
+  if (SHEETS.every(x => document.getElementById(x).hidden)) document.body.style.overflow = '';
+}
 
 /* ---------- appearance: Nijatva signature tokens ---------- */
 const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -408,7 +417,7 @@ function paintLook(){
   document.querySelectorAll('#accSw button').forEach(b => b.classList.toggle('on', b.dataset.ac === acPref));
 }
 mq.addEventListener('change', () => { if (thPref === 'system') paintLook(); });
-document.getElementById('lookBtn').addEventListener('click', () => { paintLook(); document.getElementById('lookSheet').hidden = false; });
+document.getElementById('lookBtn').addEventListener('click', () => { paintLook(); openModal('lookSheet'); });
 document.querySelectorAll('#lookSheet .opt').forEach(o => o.addEventListener('click', () => {
   thPref = o.dataset.th; localStorage.setItem('kosha-theme', thPref); paintLook();
 }));
@@ -433,7 +442,7 @@ document.getElementById('osBtn').addEventListener('click', () => {
     o.classList.toggle('on', on);
     o.querySelector('.tick').hidden = !on;
   });
-  document.getElementById('osSheet').hidden = false;
+  openModal('osSheet');
 });
 document.querySelectorAll('#osSheet .opt').forEach(o => o.addEventListener('click', () => {
   state.os = o.dataset.os;
@@ -443,7 +452,7 @@ document.querySelectorAll('#osSheet .opt').forEach(o => o.addEventListener('clic
 }));
 
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
-document.querySelectorAll('.scrim').forEach(s => s.addEventListener('click', e => { if (e.target === s) s.hidden = true; }));
+document.querySelectorAll('.scrim').forEach(s => s.addEventListener('click', e => { if (e.target === s) closeModal(s.id); }));
 
 document.addEventListener('click', e => {
   const open = e.target.closest('[data-open]');
@@ -461,7 +470,7 @@ document.addEventListener('keydown', e => {
   if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
     e.preventDefault(); document.getElementById('q').focus();
   }
-  if (e.key === 'Escape') { closeModal('appSheet'); closeModal('osSheet'); closeModal('lookSheet'); }
+  if (e.key === 'Escape') { SHEETS.forEach(closeModal); }
 });
 
 paintLook();
